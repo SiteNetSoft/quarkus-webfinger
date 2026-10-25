@@ -10,6 +10,7 @@ import org.sitenetsoft.quarkus.webfinger.WebFingerBuildTimeConfig;
 import org.sitenetsoft.quarkus.webfinger.WebFingerObjectMapperCustomizer;
 import org.sitenetsoft.quarkus.webfinger.WebFingerRecorder;
 import org.sitenetsoft.quarkus.webfinger.WebFingerResolver;
+import org.sitenetsoft.quarkus.webfinger.oidc.OidcIssuerResolver;
 import org.sitenetsoft.quarkus.webfinger.server.HostMetaHandler;
 import org.sitenetsoft.quarkus.webfinger.server.WebFingerHandler;
 
@@ -46,6 +47,13 @@ class WebFingerProcessor {
                 .addBeanClasses(WebFingerHandler.class, HostMetaHandler.class, WebFingerObjectMapperCustomizer.class)
                 .setUnremovable()
                 .build();
+    }
+
+    @BuildStep
+    void oidcResolver(WebFingerBuildTimeConfig config, BuildProducer<AdditionalBeanBuildItem> beans) {
+        if (config.oidc().enabled()) {
+            beans.produce(AdditionalBeanBuildItem.unremovableOf(OidcIssuerResolver.class));
+        }
     }
 
     @BuildStep
