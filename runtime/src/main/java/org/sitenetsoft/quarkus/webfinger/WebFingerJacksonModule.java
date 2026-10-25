@@ -18,8 +18,9 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 /**
- * Jackson support for the JRD wire format. Null and empty members are omitted on output, except property values,
- * which RFC 7033 allows to be {@code null}. Unknown members are ignored on input.
+ * Jackson support for the JRD wire format. Null and empty members are omitted on output, except {@code links}
+ * (always present) and property values, which RFC 7033 allows to be {@code null}. Unknown members are ignored on
+ * input.
  */
 public class WebFingerJacksonModule extends SimpleModule {
 
@@ -48,13 +49,12 @@ public class WebFingerJacksonModule extends SimpleModule {
                 gen.writeEndArray();
             }
             writeProperties(gen, jrd.properties());
-            if (!jrd.links().isEmpty()) {
-                gen.writeArrayFieldStart("links");
-                for (Link link : jrd.links()) {
-                    provider.defaultSerializeValue(link, gen);
-                }
-                gen.writeEndArray();
+            // "links" is always written, even when empty, so a rel filter that matches nothing yields "links": []
+            gen.writeArrayFieldStart("links");
+            for (Link link : jrd.links()) {
+                provider.defaultSerializeValue(link, gen);
             }
+            gen.writeEndArray();
             gen.writeEndObject();
         }
     }

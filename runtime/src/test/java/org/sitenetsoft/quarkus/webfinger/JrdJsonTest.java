@@ -97,9 +97,9 @@ class JrdJsonTest {
     }
 
     @Test
-    void omitsEmptyFields() throws Exception {
+    void omitsEmptyFieldsExceptLinks() throws Exception {
         String json = mapper.writeValueAsString(JsonResourceDescriptor.of(URI.create("acct:a@b.example")));
-        assertEquals("{\"subject\":\"acct:a@b.example\"}", json);
+        assertEquals("{\"subject\":\"acct:a@b.example\",\"links\":[]}", json);
     }
 
     @Test
