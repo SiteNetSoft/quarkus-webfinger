@@ -1,0 +1,14 @@
+name: "WebFinger"
+artifact: ${project.groupId}:${project.artifactId}:${project.version}
+description: "Serve and query WebFinger (RFC 7033) and host-meta (RFC 6415)"
+metadata:
+  keywords:
+    - "webfinger"
+    - "host-meta"
+    - "discovery"
+    - "activitypub"
+    - "oidc"
+  guide: "https://github.com/SiteNetSoft/quarkus-webfinger"
+  categories:
+    - "web"
+  status: "experimental"
