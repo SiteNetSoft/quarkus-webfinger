@@ -1,0 +1,5 @@
+name: quarkus-webfinger
+title: Quarkus WebFinger
+version: dev
+nav:
+  - modules/ROOT/nav.adoc

@@ -70,7 +70,7 @@ public class WebFingerHandler implements Handler<RoutingContext> {
         });
     }
 
-    static URI parseResource(String value) {
+    public static URI parseResource(String value) {
         if (value == null || value.isBlank()) {
             return null;
         }

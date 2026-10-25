@@ -1,0 +1,69 @@
+= Quarkus WebFinger
+:extension-status: experimental
+
+Serves and queries WebFinger (RFC 7033) and host-meta (RFC 6415). The app supplies resource data through resolvers;
+the extension handles the endpoint, the wire format, merging, caching and safe fetching. It knows resources and
+links, not actors.
+
+== Serving
+
+[source,java]
+----
+@ApplicationScoped
+@Priority(10)
+public class ActorResolver implements WebFingerResolver {
+    public Optional<JsonResourceDescriptor> resolve(WebFingerRequest request) {
+        return request.account()
+            .filter(a -> a.host().equals("example.com") && users.exists(a.user()))
+            .map(a -> JsonResourceDescriptor.of(request.resource())
+                 .withLink(Link.of("self", "application/activity+json", URI.create("https://example.com/users/" + a.user()))));
+    }
+}
+----
+
+* Every resolver runs, highest `@Priority` first. Answers for the same subject are merged: links and aliases are
+  concatenated, and on a property clash the higher priority wins.
+* `ReactiveWebFingerResolver` returns `Uni<Optional<JsonResourceDescriptor>>`.
+* No answer gives `404`; a missing or malformed `resource` gives `400`. `rel` filtering happens after the merge.
+* Responses use `application/jrd+json` and send `Access-Control-Allow-Origin: *` unless `quarkus.webfinger.server.cors=false`.
+* Without any resolver bean at build time the endpoint is not registered and the build log says why.
+* `/.well-known/*` routes are registered at the server root, whatever `quarkus.http.root-path` says.
+
+=== Built-in OpenID Connect resolver
+
+Set `quarkus.webfinger.oidc.enabled=true`, `quarkus.webfinger.oidc.issuer` and `quarkus.webfinger.oidc.domains` to
+answer the `http://openid.net/specs/connect/1.0/issuer` rel for OIDC Discovery.
+
+== Looking up
+
+[source,java]
+----
+@Inject WebFingerClient client;             // blocking
+@Inject ReactiveWebFingerClient reactive;   // Mutiny
+
+JsonResourceDescriptor jrd = client.lookup(AcctUri.parse("alice@mastodon.example"), Set.of("self"));
+----
+
+Resolution: `https://<host>/.well-known/webfinger`, then on `404` host-meta's LRDD template once. The template (or
+its absence) is remembered per host; results are cached by `Cache-Control: max-age`, capped by
+`quarkus.webfinger.client.cache.max-ttl`. Failures are `WebFingerNotFoundException`,
+`WebFingerInvalidResponseException` or `WebFingerUnreachableException`. All calls go through `quarkus-safe-fetch`.
+
+== Configuration
+
+[cols="3,1,3"]
+|===
+|Property |Default |Purpose
+
+|`quarkus.webfinger.server.enabled` |`true` |Serve the endpoint when resolvers exist (build time)
+|`quarkus.webfinger.server.cors` |`true` |Send `Access-Control-Allow-Origin: *`
+|`quarkus.webfinger.server.host-meta.enabled` |`false` |Also serve host-meta (XRD and JSON) (build time)
+|`quarkus.webfinger.oidc.enabled` |`false` |Built-in OIDC issuer resolver (build time)
+|`quarkus.webfinger.oidc.issuer` |none |Issuer URL to advertise
+|`quarkus.webfinger.oidc.domains` |none |Domains whose `acct:` addresses it answers
+|`quarkus.webfinger.client.timeout` |`10s` |Per-request timeout
+|`quarkus.webfinger.client.max-response-size` |`64K` |Larger responses are rejected
+|`quarkus.webfinger.client.host-meta-fallback` |`true` |Try LRDD on `404`
+|`quarkus.webfinger.client.cache.max-entries` |`1000` |Result cache size
+|`quarkus.webfinger.client.cache.max-ttl` |`1h` |Upper bound on cached results
+|===
