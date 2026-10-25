@@ -10,6 +10,8 @@ import org.sitenetsoft.quarkus.webfinger.WebFingerBuildTimeConfig;
 import org.sitenetsoft.quarkus.webfinger.WebFingerObjectMapperCustomizer;
 import org.sitenetsoft.quarkus.webfinger.WebFingerRecorder;
 import org.sitenetsoft.quarkus.webfinger.WebFingerResolver;
+import org.sitenetsoft.quarkus.webfinger.client.BlockingWebFingerClient;
+import org.sitenetsoft.quarkus.webfinger.client.WebFingerClientImpl;
 import org.sitenetsoft.quarkus.webfinger.oidc.OidcIssuerResolver;
 import org.sitenetsoft.quarkus.webfinger.server.HostMetaHandler;
 import org.sitenetsoft.quarkus.webfinger.server.WebFingerHandler;
@@ -44,7 +46,8 @@ class WebFingerProcessor {
     @BuildStep
     AdditionalBeanBuildItem beans() {
         return AdditionalBeanBuildItem.builder()
-                .addBeanClasses(WebFingerHandler.class, HostMetaHandler.class, WebFingerObjectMapperCustomizer.class)
+                .addBeanClasses(WebFingerHandler.class, HostMetaHandler.class, WebFingerObjectMapperCustomizer.class,
+                        WebFingerClientImpl.class, BlockingWebFingerClient.class)
                 .setUnremovable()
                 .build();
     }
