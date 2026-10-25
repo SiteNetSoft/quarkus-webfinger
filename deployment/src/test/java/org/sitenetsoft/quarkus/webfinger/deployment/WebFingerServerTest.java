@@ -90,6 +90,14 @@ public class WebFingerServerTest {
     }
 
     @Test
+    void bareAccountIsNormalisedToAcct() {
+        given().queryParam("resource", "alice@example.com")
+                .when().get("/.well-known/webfinger")
+                .then().statusCode(200)
+                .body("subject", equalTo("acct:alice@example.com"));
+    }
+
+    @Test
     void httpsResourceIsPassedThrough() {
         given().queryParam("resource", "https://example.com/article/1")
                 .when().get("/.well-known/webfinger")

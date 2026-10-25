@@ -86,7 +86,7 @@ public class WebFingerClientImpl implements ReactiveWebFingerClient {
         String key = resource + "|" + new TreeSet<>(relSet);
         Cached cached = results.getIfPresent(key);
         if (cached != null) {
-            return Uni.createFrom().item(cached.jrd());
+            return Uni.createFrom().item(cached.jrd().filterRels(relSet));
         }
         return direct(host, resource, relSet)
                 .onFailure(SafeFetchException.class).transform(t -> new WebFingerUnreachableException(

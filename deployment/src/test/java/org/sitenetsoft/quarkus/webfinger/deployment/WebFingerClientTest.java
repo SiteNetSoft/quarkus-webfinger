@@ -70,6 +70,16 @@ public class WebFingerClientTest {
     }
 
     @Test
+    void cachedLookupStillFiltersRels() {
+        URI r = URI.create("acct:alice@direct.test");
+        assertEquals(2, client.lookup(r, Set.of()).links().size());
+        JsonResourceDescriptor filtered = client.lookup(r, Set.of("self"));
+        assertEquals(1, filtered.links().size());
+        // same rels again: served from cache, still filtered
+        assertEquals(1, client.lookup(r, Set.of("self")).links().size());
+    }
+
+    @Test
     void fallsBackToLrddAndRemembersTemplate() {
         JsonResourceDescriptor jrd = client.lookup(new AcctUri("bob", "lrdd.test"), Set.of());
         assertEquals(URI.create("https://lrdd.test/users/bob"), jrd.links().get(0).href());

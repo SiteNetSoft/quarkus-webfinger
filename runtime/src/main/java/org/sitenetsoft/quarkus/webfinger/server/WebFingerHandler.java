@@ -12,6 +12,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import org.jboss.logging.Logger;
+import org.sitenetsoft.quarkus.webfinger.AcctUri;
 import org.sitenetsoft.quarkus.webfinger.JsonResourceDescriptor;
 import org.sitenetsoft.quarkus.webfinger.ReactiveWebFingerResolver;
 import org.sitenetsoft.quarkus.webfinger.WebFingerRequest;
@@ -70,14 +71,26 @@ public class WebFingerHandler implements Handler<RoutingContext> {
         });
     }
 
+    /**
+     * The {@code resource} parameter as a URI, or {@code null} when it cannot be one. A bare {@code user@host} is
+     * normalised to {@code acct:user@host}, as WebFinger clients and users commonly type it.
+     */
     public static URI parseResource(String value) {
         if (value == null || value.isBlank()) {
             return null;
         }
+        String s = value.strip();
         try {
-            URI uri = new URI(value.strip());
-            return uri.getScheme() == null ? null : uri;
+            URI uri = new URI(s);
+            if (uri.getScheme() != null) {
+                return uri;
+            }
         } catch (URISyntaxException e) {
+            // fall through: maybe a bare account
+        }
+        try {
+            return AcctUri.parse(s).toUri();
+        } catch (IllegalArgumentException e) {
             return null;
         }
     }

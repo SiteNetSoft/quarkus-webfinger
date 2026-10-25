@@ -85,11 +85,12 @@ class WebFingerProcessor {
                     + "well-known paths must sit at the domain root", rootPath.getRootPath(), WEBFINGER_PATH);
         }
         LOG.debugf("WebFinger resolvers: %s %s", resolvers, reactive);
-        routes.produce(RouteBuildItem.builder().route(WEBFINGER_PATH).handler(recorder.webfingerHandler())
+        // HttpRootPathBuildItem's builder types a leading-slash path outside the root path as an absolute route
+        routes.produce(rootPath.routeBuilder().route(WEBFINGER_PATH).handler(recorder.webfingerHandler())
                 .displayOnNotFoundPage("WebFinger").build());
         if (config.server().hostMeta().enabled()) {
-            routes.produce(RouteBuildItem.builder().route(HOST_META_PATH).handler(recorder.hostMetaXrdHandler()).build());
-            routes.produce(RouteBuildItem.builder().route(HOST_META_JSON_PATH).handler(recorder.hostMetaJsonHandler()).build());
+            routes.produce(rootPath.routeBuilder().route(HOST_META_PATH).handler(recorder.hostMetaXrdHandler()).build());
+            routes.produce(rootPath.routeBuilder().route(HOST_META_JSON_PATH).handler(recorder.hostMetaJsonHandler()).build());
         }
     }
 }
