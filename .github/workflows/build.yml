@@ -46,6 +46,10 @@ jobs:
           java-version: 21
           distribution: mandrel
           cache: maven
+      - name: Build quarkus-safe-fetch (sibling dependency)
+        run: |
+          git clone --depth 1 https://github.com/SiteNetSoft/quarkus-safe-fetch ../quarkus-safe-fetch
+          mvn -B -T 8 -f ../quarkus-safe-fetch/pom.xml install -DskipTests
       - run: >
           mvn -B -T 8 verify -Dnative
           -Dquarkus.native.additional-build-args=-J-XX:TieredStopAtLevel=1,--parallelism=8
